@@ -28,6 +28,7 @@
 #include "SPAmix.hpp"
 #include "SPAGRM.hpp"
 #include "WtSPAG.hpp"
+#include "SARPA.hpp"
 
 // global objects for different genotype formats
 
@@ -43,6 +44,7 @@ static SPACox::SPACoxClass* ptr_gSPACoxobj = NULL;
 static SPAmix::SPAmixClass* ptr_gSPAmixobj = NULL;
 static SPAGRM::SPAGRMClass* ptr_gSPAGRMobj = NULL;
 static WtSPAG::WtSPAGClass* ptr_gWtSPAGobj = NULL;
+static SARPA::SARPAClass* ptr_gSARPAobj = NULL;
 
 // global variables for analysis
 std::string g_impute_method;      // "mean", "minor", or "drop"
@@ -1355,6 +1357,55 @@ void setSPAGRMobjInCPP(arma::vec t_resid,
                                            t_tol);
 }
 
+// [[Rcpp::export]]
+void setSARPAobjInCPP(arma::vec t_Tarvec,
+                      arma::vec t_Riskvec,
+                      arma::mat t_designMat,
+                      Rcpp::DataFrame t_GRM, 
+                      Rcpp::List t_gammas,
+                      arma::mat t_inv_tX_X,
+                      arma::mat t_inv_tX_X_tX,
+                      arma::vec t_resid,
+                      arma::vec t_resid_unrelated_outliers,
+                      double t_sum_unrelated_outliers2,
+                      double t_sum_R_nonOutlier,
+                      double t_R_GRM_R_nonOutlier,
+                      double t_R_GRM_R_TwoSubjOutlier,
+                      double t_R_GRM_R,
+                      arma::vec t_MAF_interval,
+                      Rcpp::List t_TwoSubj_list,
+                      Rcpp::List t_ThreeSubj_list,
+                      double t_SPA_Cutoff,
+                      double t_zeta,
+                      double t_tol)
+{
+  if(ptr_gSARPAobj)
+    delete ptr_gSARPAobj;
+  
+  ptr_gSARPAobj = new SARPA::SARPAClass(t_Tarvec,
+                                        t_Riskvec,
+                                        t_designMat,
+                                        t_GRM,
+                                        t_gammas,
+                                        t_inv_tX_X,
+                                        t_inv_tX_X_tX,
+                                        t_resid,
+                                        t_resid_unrelated_outliers,
+                                        t_sum_unrelated_outliers2,
+                                        t_sum_R_nonOutlier,
+                                        t_R_GRM_R_nonOutlier,
+                                        t_R_GRM_R_TwoSubjOutlier,
+                                        t_R_GRM_R,
+                                        t_MAF_interval,
+                                        t_TwoSubj_list,
+                                        t_ThreeSubj_list,
+                                        t_SPA_Cutoff,
+                                        t_zeta,
+                                        t_tol);
+  
+}
+
+  
 // [[Rcpp::export]]
 void setSPAmixobjInCPP(arma::mat t_resid,
                        arma::mat t_PCs,
