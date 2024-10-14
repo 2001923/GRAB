@@ -129,7 +129,7 @@ mainMarker.SARPA = function(genoType, genoIndex, outputColumns)
 {
   OutList = mainMarkerInCPP("SARPA", genoType, genoIndex);
   
-  print(lapply(OutList, length))
+  # print(lapply(OutList, length))
   
   obj.mainMarker = data.frame(Marker = OutList$markerVec,            # marker IDs
                               Info = OutList$infoVec,                # marker information: CHR:POS:REF:ALT

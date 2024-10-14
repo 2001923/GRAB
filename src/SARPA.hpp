@@ -387,14 +387,10 @@ public:
       t_zScore = Score/sqrt(Score_var);
       
     } else{
+      
       Score = sum(t_Gvec % m_resid) - mean(t_Gvec) * sum(m_resid); // i.e. sum((t_GVec - mean(t_GVec)) % m_resid)
-      // std::cout << "Score:" << Score << std::endl;
-      
       Score_var = G_var * m_R_GRM_R;
-      std::cout << "Score_var:" << Score_var << std::endl;
-      
       t_zScore = Score/sqrt(Score_var);
-      // std::cout << "t_zScore:" << t_zScore << std::endl;
     }
     
     if (std::abs(t_zScore) <= m_SPA_Cutoff)
@@ -408,7 +404,7 @@ public:
     int order2 = arma::index_max(m_MAF_interval >= MAF);
     int order1 = order2 - 1;
     
-    std::cout << order2 << " " << order1 << "\t";
+    // std::cout << order2 << " " << order1 << "\t";
     
     // if (MAF <= m_MAF_interval[0] || MAF > 0.5)
     // {
@@ -457,7 +453,6 @@ public:
     
     double EmpVar = Var_nonOutlier + Var_unrelated_outliers + Var_TwoOutlier + Var_ThreeOutlier;
     
-    std::cout << "Pvalue(normal):" << R::pnorm(std::abs(t_zScore), 0, 1, false, false) << "\t"; 
     double Var_Ratio = Score_var / EmpVar;
     double Score_adj = Score / sqrt(Var_Ratio);
     
