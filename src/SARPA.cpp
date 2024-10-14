@@ -15,7 +15,6 @@ SARPAClass::SARPAClass(arma::vec t_Tarvec,
                        arma::mat t_inv_tX_X_tX,
                        arma::vec t_resid,
                        arma::vec t_resid_unrelated_outliers,  
-                       double t_sum_unrelated_outliers2,     
                        double t_sum_R_nonOutlier, 
                        double t_R_GRM_R_nonOutlier,    
                        double t_R_GRM_R_TwoSubjOutlier,   
@@ -50,3 +49,4 @@ SARPAClass::SARPAClass(arma::vec t_Tarvec,
   m_tol = t_tol;
 }
 }
+

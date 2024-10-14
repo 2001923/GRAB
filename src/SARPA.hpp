@@ -24,8 +24,8 @@ private:
   arma::mat m_inv_tX_X_tX;               // prepare for fit full linear regression (riskVec ~ designMat + geno)
   arma::vec m_resid;                     // residuals
   arma::vec m_resid_unrelated_outliers;  // unrelated outlier residuals
-  double m_sum_unrelated_outliers2;      // sum of squares of unrelated outlier residuals
   double m_sum_R_nonOutlier;             // sum of non-outlier residuals
+  double m_sum_unrelated_outliers2;      // sum of squares of unrelated outlier residuals
   double m_R_GRM_R_nonOutlier;           // residuals x GRM x residuals for non-outlier families
   double m_R_GRM_R_TwoSubjOutlier;       // residuals x GRM x residuals for outlier families (n = 2)
   double m_R_GRM_R;                      // residuals x GRM x residuals
@@ -39,26 +39,25 @@ private:
   
 public:
   
-  SARPAClass(arma::vec m_Tarvec,
-             arma::vec m_Riskvec,
-             arma::mat m_designMat,
-             Rcpp::DataFrame m_GRM, 
-             Rcpp::List m_gammas,
-             arma::mat m_inv_tX_X,
-             arma::mat m_inv_tX_X_tX,
-             arma::vec m_resid,    
-             arma::vec m_resid_unrelated_outliers,
-             double m_sum_unrelated_outliers2,
-             double m_sum_R_nonOutlier,
-             double m_R_GRM_R_nonOutlier,
-             double m_R_GRM_R_TwoSubjOutlier,
-             double m_R_GRM_R,
-             arma::vec m_MAF_interval,
-             Rcpp::List m_TwoSubj_list,
-             Rcpp::List m_ThreeSubj_list,
-             double m_SPA_Cutoff,
-             double m_zeta,
-             double m_tol);
+  SARPAClass(arma::vec t_Tarvec,
+             arma::vec t_Riskvec,
+             arma::mat t_designMat,
+             Rcpp::DataFrame t_GRM, 
+             Rcpp::List t_gammas,
+             arma::mat t_inv_tX_X,
+             arma::mat t_inv_tX_X_tX,
+             arma::vec t_resid,    
+             arma::vec t_resid_unrelated_outliers,
+             double t_sum_R_nonOutlier,
+             double t_R_GRM_R_nonOutlier,
+             double t_R_GRM_R_TwoSubjOutlier,
+             double t_R_GRM_R,
+             arma::vec t_MAF_interval,
+             Rcpp::List t_TwoSubj_list,
+             Rcpp::List t_ThreeSubj_list,
+             double t_SPA_Cutoff,
+             double t_zeta,
+             double t_tol);
   
   // function to fit the full linear regression (Riskvec ~ designMat + Gvec)
   Rcpp::List fit_full(arma::vec t_Gvec) 
@@ -73,7 +72,7 @@ public:
     arma::mat M22 = arma::mat(1, 1, arma::fill::zeros);
     M22(0, 0) = M22_value;
     
-    arma::mat M11 = inv_A_B + inv_A_B * M22 * trans(inv_A_B);
+    arma::mat M11 = m_inv_tX_X + inv_A_B * M22 * trans(inv_A_B);
     arma::mat M12 = - M11 * B / D;
     
     arma::mat M = arma::join_vert(
@@ -107,7 +106,7 @@ public:
     arma::vec new_riskvec = m_Riskvec - Rcpp::as<double>(t_fit["beta.geno"]) * t_Gvec;
     
     arma::vec gammas = Rcpp::as<arma::vec>(m_gammas["gammas"]);
-    arma::vec gamma_riskvec = Rcpp::as<arma::vec>(m_gammas["gamma.riskvec"]);
+    arma::vec gamma_riskvec = Rcpp::as<arma::vec>(m_gammas["gamma.riskVec"]);
     
     arma::vec combined_gammas = arma::join_vert(gammas, gamma_riskvec);
     
@@ -123,7 +122,7 @@ public:
     arma::uvec indices = arma::find(F == 1);
     deno.elem(indices) = arma::normcdf(-t.elem(indices));
     
-    double gamma_riskVec = Rcpp::as<double>(m_gammas["gamma.riskvec"]);
+    double gamma_riskVec = Rcpp::as<double>(m_gammas["gamma.riskVec"]);
     double sigma2_sq = Rcpp::as<double>(t_fit["sigma2_sq"]);
     arma::vec betas = arma::join_vert(Rcpp::as<arma::vec>(t_fit["betas"]), Rcpp::as<arma::vec>(t_fit["beta.geno"]));
     
@@ -362,6 +361,7 @@ public:
     // std::cout << t_altFreq << std::endl;
       
     Rcpp::List fit_results = fit_full(t_Gvec);
+    // std::cout << Rcpp::as<double>(fit_results["pval"]) << std::endl;
     
     double G_var = 2 * MAF * (1 - MAF);
     double Score, Score_var;
@@ -370,7 +370,7 @@ public:
     {
       arma::vec new_residual = cal_resid(t_Gvec, fit_results);
       
-      double Score = sum(t_Gvec % new_residual) - mean(t_Gvec) * sum(new_residual);
+      Score = sum(t_Gvec % new_residual) - mean(t_Gvec) * sum(new_residual);
       
       Rcpp::IntegerVector indice1 = m_GRM["indice1"];
       Rcpp::IntegerVector indice2 = m_GRM["indice2"];
@@ -383,30 +383,32 @@ public:
       arma::vec Cov = arma::abs(Values) % pos1 % pos2;
       
       double R_GRM_R = sum(Cov);
-      double Score_var = G_var * R_GRM_R;
-      double t_zScore = Score/sqrt(Score_var);
-      return t_zScore;
+      Score_var = G_var * R_GRM_R;
+      t_zScore = Score/sqrt(Score_var);
       
     } else{
-      double Score = sum(t_Gvec % m_resid) - mean(t_Gvec) * sum(m_resid); // i.e. sum((t_GVec - mean(t_GVec)) % m_resid)
-      double Score_var = G_var * m_R_GRM_R;
-      double t_zScore = Score/sqrt(Score_var);
-      return t_zScore;
+      Score = sum(t_Gvec % m_resid) - mean(t_Gvec) * sum(m_resid); // i.e. sum((t_GVec - mean(t_GVec)) % m_resid)
+      // std::cout << "Score:" << Score << std::endl;
+      
+      Score_var = G_var * m_R_GRM_R;
+      std::cout << "Score_var:" << Score_var << std::endl;
+      
+      t_zScore = Score/sqrt(Score_var);
+      // std::cout << "t_zScore:" << t_zScore << std::endl;
     }
-    
-    // std::cout << "t_zScore is\t" << t_zScore << std::endl;
-    t_zScore = Score/sqrt(Score_var);
     
     if (std::abs(t_zScore) <= m_SPA_Cutoff)
     {
+      // std::cout << "t_zScore:" << t_zScore << std::endl;
       double pval = R::pnorm(std::abs(t_zScore), 0, 1, false, false);
+      
       return 2 * pval;
     }
     
     int order2 = arma::index_max(m_MAF_interval >= MAF);
     int order1 = order2 - 1;
     
-    // std::cout << order2 << " " << order1 << "\t";
+    std::cout << order2 << " " << order1 << "\t";
     
     // if (MAF <= m_MAF_interval[0] || MAF > 0.5)
     // {
@@ -449,10 +451,13 @@ public:
     }
     
     double Var_nonOutlier = G_var * m_R_GRM_R_nonOutlier;
+
     double Var_unrelated_outliers = G_var * m_sum_unrelated_outliers2;
     double Var_TwoOutlier = G_var * m_R_GRM_R_TwoSubjOutlier;
     
     double EmpVar = Var_nonOutlier + Var_unrelated_outliers + Var_TwoOutlier + Var_ThreeOutlier;
+    
+    std::cout << "Pvalue(normal):" << R::pnorm(std::abs(t_zScore), 0, 1, false, false) << "\t"; 
     double Var_Ratio = Score_var / EmpVar;
     double Score_adj = Score / sqrt(Var_Ratio);
     
@@ -463,6 +468,7 @@ public:
     double pval2 = GetProb_SPA(update_ThreeSubj_list, -std::abs(Score_adj), MAF, true, zeta2, m_tol);
     double pval = pval1 + pval2;
     
+    // std::cout << "pval:" << pval << "\t";
     return pval;
   }
   

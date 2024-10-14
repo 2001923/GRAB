@@ -111,7 +111,7 @@ GRAB.Marker = function(objNull,
   outList = checkOutputFile(OutputFile, OutputFileIndex, "Marker", format(nMarkersEachChunk, scientific=F))    # this function is in 'Util.R'
   
   # added by XH-2023-05-09
-  if(NullModelClass == "SPAGRM_NULL_Model")
+  if(NullModelClass == "SPAGRM_NULL_Model" | NullModelClass == "SARPA_NULL_Model")
   {
     if(control$min_maf_marker <= min(objNull$MAF_interval))
       stop("min_maf_marker is out of MAF_interval, Please reset min_maf_marker or check MAF_interval.")
@@ -230,6 +230,10 @@ setMarker = function(NullModelClass, objNull, control, chrom, Group, ifOutGroup)
   # Check WtSPAG.R
   if(NullModelClass == "WtSPAG_NULL_Model")
     obj.setMarker = setMarker.WtSPAG(objNull, control)
+  
+  # Check SARPA.R
+  if(NullModelClass == "SARPA_NULL_Model")
+    obj.setMarker = setMarker.SARPA(objNull, control) 
     
   return(obj.setMarker)
 }
@@ -276,6 +280,10 @@ mainMarker = function(NullModelClass, genoType, genoIndex, outputColumns, objNul
   # Check 'WtSPAG.R'
   if(NullModelClass == "WtSPAG_NULL_Model")
     obj.mainMarker = mainMarker.WtSPAG(genoType, genoIndex, outputColumns, obj.setMarker)
+  
+  # Check 'SARPA.R'
+  if(NullModelClass == "SARPA_NULL_Model")
+    obj.mainMarker = mainMarker.SARPA(genoType, genoIndex, outputColumns)
   
   return(obj.mainMarker)
 }

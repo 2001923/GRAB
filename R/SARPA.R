@@ -102,12 +102,25 @@ checkControl.SARPA.NullModel = function(control,
 setMarker.SARPA = function(objNull, control)
 {
   # the below function is in 'Main.cpp'
-  setSARPAobjInCPP(objNull$Resid,
+  setSARPAobjInCPP(objNull$Tarvec,
+                   objNull$Riskvec,
+                   objNull$designMat,
+                   objNull$GRM,
+                   objNull$gammas,
+                   objNull$inv_tX_X,
+                   objNull$inv_tX_X_tX,
+                   objNull$Resid,
                    objNull$Resid.unrelated.outliers,
                    objNull$sum_R_nonOutlier,
                    objNull$R_GRM_R_nonOutlier,
                    objNull$R_GRM_R_TwoSubjOutlier,
-                   objNull$R_GRM_R)
+                   objNull$R_GRM_R,
+                   objNull$MAF_interval,
+                   objNull$TwoSubj_list,
+                   objNull$ThreeSubj_list,
+                   control$SPA_Cutoff,
+                   control$zeta,
+                   control$tol)
   
   print(paste0("The current control$nMarkersEachChunk is", control$nMarkersEachChunk, ".")) # This file is in 'control.R'
 }
@@ -116,12 +129,14 @@ mainMarker.SARPA = function(genoType, genoIndex, outputColumns)
 {
   OutList = mainMarkerInCPP("SARPA", genoType, genoIndex);
   
+  print(lapply(OutList, length))
+  
   obj.mainMarker = data.frame(Marker = OutList$markerVec,            # marker IDs
                               Info = OutList$infoVec,                # marker information: CHR:POS:REF:ALT
                               AltFreq = OutList$altFreqVec,          # alternative allele frequencies
                               AltCounts = OutList$altCountsVec,      # alternative allele counts
                               MissingRate = OutList$missingRateVec,  # missing rate
-                              zScore = OutList$zscore,               # standardized score statistics
+                              zScore = OutList$zScore,               # standardized score statistics
                               Pvalue = OutList$pvalVec,              # marker-level p-value
                               hwepval = OutList$hwepvalVec)
   
@@ -202,15 +217,18 @@ SARPA.NullModel = function(PhenoFile,          # at least four columns: column 1
   print(ResidMat %>% filter(Outlier == TRUE) %>% dplyr::select(SubjID, Resid, Outlier) %>% arrange(Resid))
   
   if(is.null(CovarColList)){
-    designMat = Pheno[, ..setdiff(colnames(Pheno), c("SubjID", "Tar", "Risk"))]
+    designMat = Pheno %>% select(setdiff(colnames(Pheno), c("SubjID", "Tar", "Risk")))
+    designMat = as.matrix(designMat)
   } else{
-    designMat = as.matrix(Pheno[, ..CovarColList])
+    designMat = Pheno %>% select(all_of(CovarColList))
+    designMat = as.matrix(designMat)
   }
   
-  response = Pheno %>% select('Tar', 'Risk') 
+  Tarvec = Pheno$Tar
+  Riskvec = Pheno$Risk
   
-  gammas = SARPA_fit_null(tarVec = response$Tar,
-                          riskVec = response$Risk,
+  gammas = SARPA_fit_null(tarVec = Tarvec,
+                          riskVec = Riskvec,
                           covMat = designMat)
     
   # Decompose the subjects based on family structure and use a greedy algorithm to reduce family size if needed
@@ -426,11 +444,10 @@ SARPA.NullModel = function(PhenoFile,          # at least four columns: column 1
     }
   }
   
-  Tarvec = response$Tar
-  Riskvec = response$Risk
+  
   
   obj = list(Tarvec = Tarvec, Riskvec = Riskvec, designMat = designMat, GRM = SparseGRM1, gammas = gammas, 
-             Resid = Resid, subjData = subjID, N = length(SubjID), 
+             Resid = Resid, subjData = subjID, N = length(subjID), 
              inv_tX_X = inv_tX_X, inv_tX_X_tX = inv_tX_X_tX, Resid.unrelated.outliers = Resid.unrelated.outliers,
              R_GRM_R = R_GRM_R, R_GRM_R_TwoSubjOutlier = R_GRM_R_TwoSubjOutlier,
              sum_R_nonOutlier = sum_R_nonOutlier, R_GRM_R_nonOutlier = R_GRM_R_nonOutlier,

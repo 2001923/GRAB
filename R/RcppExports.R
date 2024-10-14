@@ -81,8 +81,8 @@ setSPAGRMobjInCPP <- function(t_resid, t_resid_unrelated_outliers, t_sum_R_nonOu
     invisible(.Call(`_GRAB_setSPAGRMobjInCPP`, t_resid, t_resid_unrelated_outliers, t_sum_R_nonOutlier, t_R_GRM_R_nonOutlier, t_R_GRM_R_TwoSubjOutlier, t_R_GRM_R, t_MAF_interval, t_TwoSubj_list, t_ThreeSubj_list, t_SPA_Cutoff, t_zeta, t_tol))
 }
 
-setSARPAobjInCPP <- function(t_Tarvec, t_Riskvec, t_designMat, t_GRM, t_gammas, t_inv_tX_X, t_inv_tX_X_tX, t_resid, t_resid_unrelated_outliers, t_sum_unrelated_outliers2, t_sum_R_nonOutlier, t_R_GRM_R_nonOutlier, t_R_GRM_R_TwoSubjOutlier, t_R_GRM_R, t_MAF_interval, t_TwoSubj_list, t_ThreeSubj_list, t_SPA_Cutoff, t_zeta, t_tol) {
-    invisible(.Call(`_GRAB_setSARPAobjInCPP`, t_Tarvec, t_Riskvec, t_designMat, t_GRM, t_gammas, t_inv_tX_X, t_inv_tX_X_tX, t_resid, t_resid_unrelated_outliers, t_sum_unrelated_outliers2, t_sum_R_nonOutlier, t_R_GRM_R_nonOutlier, t_R_GRM_R_TwoSubjOutlier, t_R_GRM_R, t_MAF_interval, t_TwoSubj_list, t_ThreeSubj_list, t_SPA_Cutoff, t_zeta, t_tol))
+setSARPAobjInCPP <- function(t_Tarvec, t_Riskvec, t_designMat, t_GRM, t_gammas, t_inv_tX_X, t_inv_tX_X_tX, t_resid, t_resid_unrelated_outliers, t_sum_R_nonOutlier, t_R_GRM_R_nonOutlier, t_R_GRM_R_TwoSubjOutlier, t_R_GRM_R, t_MAF_interval, t_TwoSubj_list, t_ThreeSubj_list, t_SPA_Cutoff, t_zeta, t_tol) {
+    invisible(.Call(`_GRAB_setSARPAobjInCPP`, t_Tarvec, t_Riskvec, t_designMat, t_GRM, t_gammas, t_inv_tX_X, t_inv_tX_X_tX, t_resid, t_resid_unrelated_outliers, t_sum_R_nonOutlier, t_R_GRM_R_nonOutlier, t_R_GRM_R_TwoSubjOutlier, t_R_GRM_R, t_MAF_interval, t_TwoSubj_list, t_ThreeSubj_list, t_SPA_Cutoff, t_zeta, t_tol))
 }
 
 setSPAmixobjInCPP <- function(t_resid, t_PCs, t_N, t_SPA_Cutoff, t_outlierList) {

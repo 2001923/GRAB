@@ -187,7 +187,7 @@ void updateGroupInfo(arma::vec t_GVec,
 //////// ---------- Main function for marker-level analysis --------- ////////////
 
 // [[Rcpp::export]]
-Rcpp::List mainMarkerInCPP(std::string t_method,       // "POLMM", "SPACox", "SAIGE", "SPAmix", "SPAGRM"
+Rcpp::List mainMarkerInCPP(std::string t_method,       // "POLMM", "SPACox", "SAIGE", "SPAmix", "SPAGRM", "SARPA"
                            std::string t_genoType,     // "PLINK", "BGEN"
                            std::vector<uint64_t> t_genoIndex)  
 {
@@ -1056,7 +1056,7 @@ arma::vec Unified_getOneMarker(std::string t_genoType,   // "PLINK", "BGEN"
 }
 
 // a unified function to get marker-level p-value
-void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE", "SPAmix", and "SPAGRM"
+void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE", "SPAmix", "SPAGRM" and "SARPA"
                            arma::vec t_GVec,
                            bool t_isOnlyOutputNonZero,
                            std::vector<uint32_t> t_indexForNonZero,
@@ -1087,10 +1087,11 @@ void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE"
       Rcpp::stop("When using SPAmix method to calculate marker-level p-values, 't_isOnlyOutputNonZero' shold be false.");
     t_pval = ptr_gSPAmixobj->getMarkerPval(t_GVec, t_altFreq);
   }
+
 }
 
 // a unified function to get marker-level p-value
-void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE", "SPAmix", and "SPAGRM"
+void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE", "SPAmix", "SPAGRM", "SARPA"
                            arma::vec t_GVec,
                            bool t_isOnlyOutputNonZero,
                            std::vector<uint32_t> t_indexForNonZero,
@@ -1102,11 +1103,16 @@ void Unified_getMarkerPval(std::string t_method,   // "POLMM", "SPACox", "SAIGE"
                            double& t_hwepval,
                            double t_hwepvalCutoff)
 {
-  if(t_method == "SPAGRM"){
-    if(t_isOnlyOutputNonZero == true)
-      Rcpp::stop("When using SPAGRM method to calculate marker-level p-values, 't_isOnlyOutputNonZero' shold be false.");
-    t_pval = ptr_gSPAGRMobj->getMarkerPval(t_GVec, t_altFreq, t_zScore, t_hwepval, t_hwepvalCutoff);
-  }else{
+  if (t_method == "SPAGRM" || t_method == "SARPA") {
+    if (t_isOnlyOutputNonZero == true)
+      Rcpp::stop("When using SPAGRM or SARPA method to calculate marker-level p-values, 't_isOnlyOutputNonZero' should be false.");
+    
+    if (t_method == "SPAGRM") {
+      t_pval = ptr_gSPAGRMobj->getMarkerPval(t_GVec, t_altFreq, t_zScore, t_hwepval, t_hwepvalCutoff);
+    } else { // t_method == "SARPA"
+      t_pval = ptr_gSARPAobj->getMarkerPval(t_GVec, t_altFreq, t_zScore, t_hwepval, t_hwepvalCutoff);
+    }
+  } else {
     Unified_getMarkerPval(t_method, t_GVec,
                           false, // bool t_isOnlyOutputNonZero,
                           t_indexForNonZero, t_Beta, t_seBeta, t_pval, t_zScore, t_altFreq);
@@ -1367,7 +1373,6 @@ void setSARPAobjInCPP(arma::vec t_Tarvec,
                       arma::mat t_inv_tX_X_tX,
                       arma::vec t_resid,
                       arma::vec t_resid_unrelated_outliers,
-                      double t_sum_unrelated_outliers2,
                       double t_sum_R_nonOutlier,
                       double t_R_GRM_R_nonOutlier,
                       double t_R_GRM_R_TwoSubjOutlier,
@@ -1391,7 +1396,6 @@ void setSARPAobjInCPP(arma::vec t_Tarvec,
                                         t_inv_tX_X_tX,
                                         t_resid,
                                         t_resid_unrelated_outliers,
-                                        t_sum_unrelated_outliers2,
                                         t_sum_R_nonOutlier,
                                         t_R_GRM_R_nonOutlier,
                                         t_R_GRM_R_TwoSubjOutlier,
